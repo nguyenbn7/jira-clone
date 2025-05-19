@@ -3,6 +3,7 @@
 	import type { LayoutData } from './$types';
 
 	import '../app.css';
+	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 
 	interface LayoutProps {
 		data: LayoutData;
@@ -10,6 +11,10 @@
 	}
 
 	let { data, children }: LayoutProps = $props();
+
+	const queryClient = new QueryClient();
 </script>
 
-{@render children()}
+<QueryClientProvider client={queryClient}>
+	{@render children()}
+</QueryClientProvider>

@@ -3,6 +3,7 @@
 	import type { LayoutData } from './$types';
 
 	import { Button } from '$lib/components/ui/button';
+	
 	import { page } from '$app/state';
 
 	interface LayoutProps {
@@ -10,9 +11,9 @@
 		children: Snippet;
 	}
 
-	let { data, children }: LayoutProps = $props();
+	const { data, children }: LayoutProps = $props();
 
-	let isSignIn = $derived(page.url.pathname === '/sign-in');
+	const isSignIn = $derived(page.url.pathname === '/sign-in');
 </script>
 
 <main class="bg-neutral-100 min-h-screen">

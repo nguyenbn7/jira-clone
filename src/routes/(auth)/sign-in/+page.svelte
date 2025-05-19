@@ -1,35 +1,51 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
+	import Loader from '@lucide/svelte/icons/loader';
+
+	import { FaGithub, FcGoogle } from '$lib/components/icons';
+
+	import { loginSchema } from '$features/auth/schema';
+	import { createLoginClient } from '$features/auth/api';
+
+	import { Metadata } from '$lib/components/metadata';
+	import { DottedSeperator } from '$lib/components/seperator';
+
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { FormControl, FormField, FormFieldErrors } from '$lib/components/ui/form';
 
-	import { superForm } from 'sveltekit-superforms/client';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-
-	import { Metadata } from '$lib/components/metadata';
-	import { DottedSeperator } from '$lib/components/seperator';
-
-	import { loginSchema } from '$features/auth/schemas';
-
-	import { FaGithub, FcGoogle } from '$lib/components/icons';
-	import Loader from '@lucide/svelte/icons/loader';
+	import { defaults, superForm } from 'sveltekit-superforms/client';
+	import { zod } from 'sveltekit-superforms/adapters';
 
 	interface PageProps {
 		data: PageData;
 	}
 
-	let { data }: PageProps = $props();
+	const { data }: PageProps = $props();
 
-	const form = superForm(data.form, {
-		validators: zodClient(loginSchema)
+	const loginClient = createLoginClient({
+		onSuccess() {
+			window.location.reload();
+			form.reset(defaults(zod(loginSchema)));
+		}
 	});
 
-	const { form: formData, delayed } = form;
+	const form = superForm(defaults(zod(loginSchema)), {
+		SPA: true,
+		validators: zod(loginSchema),
+		resetForm: false,
+		onUpdate({ form }) {
+			if (form.valid) {
+				$loginClient.mutate({ ...form.data });
+			}
+		}
+	});
 
-	let isPending = $derived($delayed);
+	const { form: formData, enhance } = form;
+
+	const isPending = $derived($loginClient.isPending);
 </script>
 
 <Metadata title="Sign In" />
@@ -44,7 +60,7 @@
 	</div>
 
 	<CardContent class="p-7">
-		<form class="space-y-4" method="post">
+		<form class="space-y-4" method="post" use:enhance>
 			<FormField {form} name="email">
 				<FormControl>
 					{#snippet children({ props })}
@@ -52,6 +68,7 @@
 							{...props}
 							type="email"
 							disabled={isPending}
+							autocomplete="email"
 							placeholder="Enter email address"
 							bind:value={$formData.email}
 						/>
@@ -69,13 +86,16 @@
 							type="password"
 							disabled={isPending}
 							placeholder="Enter password"
+							autocomplete="off"
 							bind:value={$formData.password}
 						/>
 					{/snippet}
 				</FormControl>
+
+				<FormFieldErrors />
 			</FormField>
 
-			<Button disabled={isPending} size="lg" class="w-full">
+			<Button type="submit" disabled={isPending} size="lg" class="w-full">
 				Login
 				{#if isPending}
 					<Loader size={16} class="ml-2 animate-spin text-blue-600" />
@@ -89,12 +109,12 @@
 	</div>
 
 	<CardContent class="p-7 flex flex-col gap-y-4">
-		<Button variant="secondary" size="lg" disabled={false} class="w-full">
+		<Button variant="secondary" size="lg" disabled={isPending} class="w-full">
 			<FcGoogle class="mr-2 size-5" />
 			Login with Google
 		</Button>
 
-		<Button variant="secondary" size="lg" disabled={false} class="w-full">
+		<Button variant="secondary" size="lg" disabled={isPending} class="w-full">
 			<FaGithub class="mr-2 size-5" />
 			Login with Github
 		</Button>

@@ -5,7 +5,9 @@
 		title?: string;
 	}
 
-	let { title }: Props = $props();
+	// TODO: add more field
+
+	const { title }: Props = $props();
 </script>
 
 <svelte:head>

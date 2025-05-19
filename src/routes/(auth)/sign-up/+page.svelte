@@ -1,9 +1,18 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
+	import Loader from '@lucide/svelte/icons/loader';
+	import { FaGithub, FcGoogle } from '$lib/components/icons';
+
+	import { registerSchema } from '$features/auth/schema';
+	import { createRegisterClient } from '$features/auth/api';
+
+	import { Metadata } from '$lib/components/metadata';
+	import { DottedSeperator } from '$lib/components/seperator';
+
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
-	import { FormControl, FormField } from '$lib/components/ui/form';
+	import { FormControl, FormField, FormFieldErrors } from '$lib/components/ui/form';
 	import {
 		Card,
 		CardContent,
@@ -12,30 +21,36 @@
 		CardTitle
 	} from '$lib/components/ui/card';
 
-	import { superForm } from 'sveltekit-superforms/client';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-
-	import { Metadata } from '$lib/components/metadata';
-	import { DottedSeperator } from '$lib/components/seperator';
-
-	import { registerSchema } from '$features/auth/schemas';
-
-	import { FaGithub, FcGoogle } from '$lib/components/icons';
-	import Loader from '@lucide/svelte/icons/loader';
+	import { defaults, superForm } from 'sveltekit-superforms/client';
+	import { zod } from 'sveltekit-superforms/adapters';
 
 	interface PageProps {
 		data: PageData;
 	}
 
-	let { data }: PageProps = $props();
+	const { data }: PageProps = $props();
 
-	const form = superForm(data.form, {
-		validators: zodClient(registerSchema)
+	const registerClient = createRegisterClient({
+		onSuccess() {
+			window.location.reload();
+			form.reset(defaults(zod(registerSchema)));
+		}
 	});
 
-	const { form: formData, delayed } = form;
+	const form = superForm(defaults(zod(registerSchema)), {
+		SPA: true,
+		validators: zod(registerSchema),
+		resetForm: false,
+		onUpdate({ form: _form }) {
+			if (_form.valid) {
+				$registerClient.mutate({ ..._form.data });
+			}
+		}
+	});
 
-	let isPending = $derived($delayed);
+	const { form: formData, enhance } = form;
+
+	const isPending = $derived($registerClient.isPending);
 </script>
 
 <Metadata title="Sign Up" />
@@ -60,13 +75,22 @@
 	</div>
 
 	<CardContent class="p-7">
-		<form class="space-y-4" method="post">
+		<form class="space-y-4" method="post" use:enhance>
 			<FormField {form} name="name">
 				<FormControl>
 					{#snippet children({ props })}
-						<Input {...props} type="name" disabled={isPending} placeholder="Enter your name" />
+						<Input
+							{...props}
+							type="name"
+							disabled={isPending}
+							autocomplete="name"
+							placeholder="Enter your name"
+							bind:value={$formData.name}
+						/>
 					{/snippet}
 				</FormControl>
+
+				<FormFieldErrors />
 			</FormField>
 
 			<FormField {form} name="email">
@@ -76,11 +100,14 @@
 							{...props}
 							type="email"
 							disabled={isPending}
+							autocomplete="email"
 							placeholder="Enter email address"
 							bind:value={$formData.email}
 						/>
 					{/snippet}
 				</FormControl>
+
+				<FormFieldErrors />
 			</FormField>
 
 			<FormField {form} name="password">
@@ -91,13 +118,16 @@
 							type="password"
 							disabled={isPending}
 							placeholder="Enter password"
+							autocomplete="off"
 							bind:value={$formData.password}
 						/>
 					{/snippet}
 				</FormControl>
+
+				<FormFieldErrors />
 			</FormField>
 
-			<Button disabled={isPending} size="lg" class="w-full">
+			<Button type="submit" disabled={isPending} size="lg" class="w-full">
 				Register
 				{#if isPending}
 					<Loader size={16} class="ml-2 animate-spin text-blue-600" />
@@ -111,12 +141,12 @@
 	</div>
 
 	<CardContent class="p-7 flex flex-col gap-y-4">
-		<Button variant="secondary" size="lg" disabled={false} class="w-full">
+		<Button variant="secondary" size="lg" disabled={isPending} class="w-full">
 			<FcGoogle class="size-5 mr-2" />
 			Login with Google
 		</Button>
 
-		<Button variant="secondary" size="lg" disabled={false} class="w-full">
+		<Button variant="secondary" size="lg" disabled={isPending} class="w-full">
 			<FaGithub class="size-5 mr-2" />
 			Login with Github
 		</Button>
