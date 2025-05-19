@@ -7,15 +7,15 @@ import { PUBLIC_APPWRITE_ENDPOINT, PUBLIC_APPWRITE_PROJECT } from '$env/static/p
 import { Account, Client } from 'node-appwrite';
 
 export async function getCurrent(cookies: Cookies) {
-	const client = new Client()
-		.setEndpoint(PUBLIC_APPWRITE_ENDPOINT)
-		.setProject(PUBLIC_APPWRITE_PROJECT);
-
-	const session = cookies.get(AUTH_COOKIE);
-
-	if (!session) return;
-
 	try {
+		const client = new Client()
+			.setEndpoint(PUBLIC_APPWRITE_ENDPOINT)
+			.setProject(PUBLIC_APPWRITE_PROJECT);
+
+		const session = cookies.get(AUTH_COOKIE);
+
+		if (!session) return;
+
 		client.setSession(session);
 
 		const account = new Account(client);

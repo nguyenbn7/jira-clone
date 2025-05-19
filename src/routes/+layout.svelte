@@ -10,7 +10,7 @@
 		children: Snippet;
 	}
 
-	let { data, children }: LayoutProps = $props();
+	const { data, children }: LayoutProps = $props();
 
 	const queryClient = new QueryClient();
 </script>
