@@ -11,6 +11,7 @@ import { Account, Client, Databases, Storage } from 'node-appwrite';
 
 import { getCookie } from 'hono/cookie';
 import { createMiddleware } from 'hono/factory';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 type SessionEnv = {
 	Variables: {
@@ -28,7 +29,14 @@ export const sessionMiddleware = createMiddleware<SessionEnv>(async (c, next) =>
 
 	const session = getCookie(c, AUTH_COOKIE);
 	if (!session) {
-		return c.json({ error: 'Unauthorized' }, 401);
+		return c.json(
+			{
+				title: ReasonPhrases.UNAUTHORIZED,
+				status: StatusCodes.UNAUTHORIZED,
+				detail: 'Login required'
+			},
+			StatusCodes.UNAUTHORIZED
+		);
 	}
 
 	client.setSession(session);

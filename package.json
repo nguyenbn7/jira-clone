@@ -50,6 +50,7 @@
     "@hono/zod-validator": "^0.5.0",
     "@tanstack/svelte-query": "^5.76.0",
     "hono": "^4.7.9",
+    "http-status-codes": "^2.3.0",
     "node-appwrite": "^17.0.0"
   },
   "trustedDependencies": [
