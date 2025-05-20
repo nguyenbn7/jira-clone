@@ -3,6 +3,7 @@
 	import type { LayoutData } from './$types';
 
 	import { Navbar } from '$lib/components/navbar';
+	import { Sidebar } from '$lib/components/sidebar';
 
 	interface LayoutProps {
 		data: LayoutData;
@@ -15,7 +16,7 @@
 <div class="min-h-screen">
 	<div class="flex w-full h-full">
 		<div class="fixed left-0 top-0 hidden lg:block lg:w-[264px] h-full overflow-y-auto">
-			<!-- <Sidebar /> -->
+			<Sidebar />
 		</div>
 		<div class="lg:pl-[264px] w-full">
 			<div class="mx-auto max-w-screen-2xl h-full">
